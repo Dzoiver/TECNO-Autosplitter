@@ -1,13 +1,28 @@
-
-state("data.bin") // v2 by Seifer and C0yotl
+state("data.bin") // v3 by Seifer and C0yotl
 {
     string100 fileToLoad : "data.bin", 0xEE2908, 0x810;
 }    
 start
 {
 	if (current.fileToLoad.Contains("INTRO_MOVIE.MPG"))
-    return true;
+    {
+        vars.timerStop = false;
+        return true;
+    }
+}
+
+isLoading
+{
+    if (!settings["loadremover"])
+        return false;
     
+    if (current.fileToLoad.Contains(".DAT") && !old.fileToLoad.Contains(".DAT"))
+        vars.timerStop = true;
+
+    if (current.fileToLoad.Contains("GENCOMMENT") && !old.fileToLoad.Contains("GENCOMMENT"))
+        vars.timerStop = false;
+
+    return vars.timerStop;
 }
 split
 {
@@ -35,6 +50,7 @@ onStart
 }
 startup 
 {
+    settings.Add("loadremover", true, "Loadremover");
     settings.Add("splitLevels", true, "Split on levels");
     //settings.Add("splitCutscene", false, "Split on cutscenes");
     //settings.Add("AY 04.OGG", true, "Питание катсцена", "splitCutscene");
@@ -46,6 +62,7 @@ startup
     settings.Add("LEVELF_GENCOMMENT", true, "LEVELF (Chapter 9)", "splitLevels");
     settings.Add("ENDING_MOVIE.MPG", true, "Ending Cutscene");
     vars.counter = 0;
+    vars.timerStop = false;
     
     vars.SplitNames = new List<string>() // For every name there also must be an option in the settings, otherwise it won't work
 	{
